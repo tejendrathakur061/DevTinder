@@ -8,13 +8,17 @@ const userAuth = async (req, res, next) => {
     if (!token) {
       return res.status(401).send("Please login!");
     }
+
+    console.log("chekiggg 1111");
     const decodedData = jwt.verify(token, "Dev@Tinder1003");
     const { _id } = decodedData;
-
+    console.log("chkigg 22222");
     const user = await User.findById(_id);
     if (!user) {
       throw new Error("User not found");
     }
+    console.log("chkigg 33333");
+
     req.user = user;
     next();
   } catch (error) {

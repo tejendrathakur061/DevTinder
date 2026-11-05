@@ -18,7 +18,7 @@ const allowedOrigins = [
 const app = express();
 app.use(
   cors({
-    origin: "*",
+    origin: "https://devtinderdev.netlify.app",
     credentials: true,
   }),
 );

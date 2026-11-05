@@ -18,8 +18,8 @@ const allowedOrigins = [
 const app = express();
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true,
+    origin: "*",
+    // credentials: true,
   }),
 );
 app.use(cookieParser());

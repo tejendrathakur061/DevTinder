@@ -1,4 +1,2 @@
-const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL || "https://devtinder-uajr.onrender.com";
-
-export const BASE_URL = apiBaseUrl.replace(/\/+$/, "");
+// export const BASE_URL = "http://localhost:7777";
+export const BASE_URL = "https://devtinder-uajr.onrender.com";

@@ -2,13 +2,6 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const { validateSignup } = require("../utils/validate");
 
-const isProduction = process.env.NODE_ENV === "production";
-const authCookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-};
-
 const signup = async (req, res) => {
   try {
     validateSignup(req);
@@ -46,7 +39,7 @@ const login = async (req, res) => {
       const token = await user.getJWT();
 
       res.cookie("token", token, {
-        ...authCookieOptions,
+        httpOnly: true,
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
 
@@ -61,7 +54,9 @@ const login = async (req, res) => {
 
 const logout = (req, res) => {
   try {
-    res.clearCookie("token", authCookieOptions);
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+    });
     res.send(`User logout successful!`);
   } catch (error) {
     res.status(400).send(`LOGOUT FAILED: ${error.message}`);

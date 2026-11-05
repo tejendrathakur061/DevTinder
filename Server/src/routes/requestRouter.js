@@ -3,7 +3,7 @@ const { userAuth } = require("../middlewares/auth");
 const {
   sendConnectionRequest,
   reviewConnectionRequest,
-} = require("../controller/requestController");
+} = require("../controllers/requestController");
 
 const requestRouter = express.Router();
 

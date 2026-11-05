@@ -92,7 +92,7 @@ The client uses ES modules; the server package is configured as CommonJS.
 <a id="architecture"></a>
 ## 🏗️ Architecture
 
-The browser app makes credentialed Axios requests to the Express API. The client API URL is configured with `VITE_API_BASE_URL` (defaulting to the current Render API URL). The server parses JSON and cookies, checks the JWT cookie on protected routes, and uses Mongoose to read or update MongoDB documents. Redux Toolkit holds client-side view state; the server remains the source of persisted account and connection data.
+The browser app makes credentialed Axios requests to the Express API at `http://localhost:7777`. The server parses JSON and cookies, checks the JWT cookie on protected routes, and uses Mongoose to read or update MongoDB documents. Redux Toolkit holds client-side view state; the server remains the source of persisted account and connection data.
 
 ```mermaid
 flowchart LR
@@ -117,7 +117,7 @@ flowchart LR
     API -->|"JSON responses + Set-Cookie"| Axios
 ```
 
-For local development, the server allows `http://localhost:5173`. In production, set the server's `FRONTEND_URL` to the exact deployed frontend origin and set `VITE_API_BASE_URL` in the frontend build environment to the deployed API URL.
+In the current development configuration, the client API URL and server CORS origin are fixed to `localhost:7777` and `localhost:5173`, respectively.
 
 <a id="project-structure"></a>
 ## 🗂️ Project Structure
@@ -243,11 +243,7 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL printed in the terminal (the server allows `http://localhost:5173` by default). For local API development, create `Client/.env` with:
-
-```dotenv
-VITE_API_BASE_URL=http://localhost:7777
-```
+Open the Vite URL printed in the terminal (the current server CORS configuration expects `http://localhost:5173`). The client currently sends API requests to `http://localhost:7777`.
 
 <a id="environment-variables"></a>
 ## 🔐 Environment Variables
@@ -259,23 +255,11 @@ The server reads environment variables through `dotenv`. The repository does not
 ```dotenv
 PORT=7777
 MONGO_URI=mongodb://127.0.0.1:27017
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
 ```
 
 `MONGO_URI` is the MongoDB URI **without** a database path: the server appends `/devTinder`. For a hosted database, set it to your provider URI in your local environment file and keep credentials private. Do not commit `.env` files.
 
 There is no `JWT_SECRET` environment variable in the current implementation; the signing secret is hard-coded in the server source. Replace it with a strong environment-managed secret before deploying the application.
-
-For deployment, configure these environment variables in the hosting dashboards:
-
-| Service | Variable | Value |
-| --- | --- | --- |
-| Render (API) | `FRONTEND_URL` | Exact frontend origin, such as `https://your-site.netlify.app`. Multiple allowed origins can be comma-separated. |
-| Render (API) | `NODE_ENV` | `production` so the auth cookie is marked `Secure` and `SameSite=None`. |
-| Netlify (frontend) | `VITE_API_BASE_URL` | Render API origin, such as `https://your-service.onrender.com` (no path required). |
-
-`VITE_API_BASE_URL` is embedded during the Netlify build, so redeploy after changing it. The frontend and API on separate Netlify and Render hostnames use a cross-site cookie; browsers that block third-party cookies may require putting both services behind a same-site custom domain or proxy.
 
 <a id="api-reference"></a>
 ## 📡 API Reference
@@ -331,9 +315,9 @@ The feed excludes the authenticated user and users with any existing connection-
 - Login compares the submitted password against the stored hash and issues a JWT that expires after seven days.
 - The JWT is stored in a cookie named `token` with `httpOnly: true`; protected requests are authenticated by `userAuth`, which loads the corresponding user into `req.user`.
 - A missing token returns `401`; token verification or user-loading errors are currently returned as `400`.
-- The server uses credentialed CORS for localhost and the exact origin(s) configured by `FRONTEND_URL`; the client opts into cookie requests using Axios `withCredentials`.
+- The server uses credentialed CORS for `http://localhost:5173`; the client opts into cookie requests using Axios `withCredentials`.
 - The profile-read and profile-edit handlers remove `password` from their returned profile objects. **The login handler currently sends the Mongoose user document directly**, so its response may include the stored password hash. Avoid exposing this implementation publicly until the response is sanitized.
-- The JWT secret is hard-coded rather than read from the environment. Production cookies use `secure` and `sameSite: "none"` for cross-site frontend/API requests; production deployments must set `NODE_ENV=production`.
+- The JWT secret is hard-coded rather than read from the environment, and the cookie does not currently set `secure` or `sameSite` options. These are deployment-readiness gaps, not features of the current implementation.
 - No role-based access control or admin endpoints are implemented.
 
 <a id="database-design"></a>
@@ -416,6 +400,7 @@ Run each command from its corresponding folder.
 These are potential next steps and are **not implemented features**:
 
 - Move the JWT signing key into a required environment variable and sanitize the login response.
+- Configure production-safe cookie attributes, CORS origins, and deployment-specific client API URLs.
 - Add automated server and client tests, including authorization and request lifecycle coverage.
 - Add pagination metadata and stronger validation for feed query parameters.
 - Add account recovery, profile search/filtering, and richer discovery preferences.

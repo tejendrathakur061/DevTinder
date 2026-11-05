@@ -4,7 +4,7 @@ const {
   getReceivedRequests,
   getConnections,
   getFeed,
-} = require("../controller/userController");
+} = require("../controllers/userController");
 
 const userRouter = express.Router();
 
